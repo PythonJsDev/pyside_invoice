@@ -26,10 +26,20 @@ def db_insert(table_name: str, datas: dict[str, str]):
         db.commit()
 
 
+def db_update(table_name: str, datas: dict[str, str], id: int):
+    """Mise à jour d'une ligne dans la table"""
+    fields_updated = ','.join([str(k)+'=' + "'" + str(v) + "'" if v else str(k)+'=' + "''" for k, v in datas.items()])
+    with sqlite3.connect(DB_FILE)as db:
+        c = db.cursor()
+        c.execute(f"""UPDATE {table_name} SET {fields_updated} WHERE id={id}""")
+        db.commit()
+    # sql_update_query = """Update SqliteDb_developers set salary = 10000 where id = 4"""
+
 # def db_select_all(table_name: str) -> list:
 #     with sqlite3.connect(DB_FILE)as db:
 #         c = db.execute(f"SELECT * FROM {table_name}")
 #     return c.fetchall()
+
 
 def db_select_all(table_name: str) -> dict:
     all_datas = {}

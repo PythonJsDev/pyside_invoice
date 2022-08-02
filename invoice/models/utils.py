@@ -31,6 +31,12 @@ def all_clients_last_name():
     return sorted(db_select_all('client').get('client_last_name'))
 
 
+def all_companies():
+    companies = db_select_all('client').get('company_name')
+    companies = [e for e in companies if e != '']
+    return sorted(companies)
+
+
 def all_clients_email():
     emails = db_select_all('client').get('email')
     emails = [e for e in emails if e is not None]

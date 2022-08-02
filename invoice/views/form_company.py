@@ -1,6 +1,7 @@
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QRegularExpressionValidator
+from invoice.models import database
 from invoice.views.utils import separator_hline, check_len_data, doc, check_email
 from invoice.views.constants import (RX_COMPANY_NAME,
                                      RX_NAME,
@@ -8,6 +9,7 @@ from invoice.views.constants import (RX_COMPANY_NAME,
                                      RX_ZIP,
                                      RX_ADDRESS,
                                      RX_SIRET,
+                                     RX_APE,
                                      RX_PHONE,
                                      FORM_WIN_HEIGHT,
                                      FORM_WIN_WIDTH)
@@ -16,13 +18,14 @@ from invoice.views.constants import (RX_COMPANY_NAME,
 class FormCompany(QtWidgets.QWidget):
     def __init__(self, datas):
         super().__init__()
+        self.datas = datas
         self.setWindowTitle("Entreprise")
         self.resize(FORM_WIN_WIDTH, FORM_WIN_HEIGHT)
-        self.setup_ui(datas)
+        self.setup_ui()
 
-    def setup_ui(self, datas):
+    def setup_ui(self):
         self.create_widgets()
-        self.modify_widgets(datas)
+        self.modify_widgets()
         self.validator_inputs()
         self.create_layout()
         self.add_widgets_to_layouts()
@@ -35,7 +38,7 @@ class FormCompany(QtWidgets.QWidget):
         self.le_company = QtWidgets.QLineEdit()
         self.lbl_civil_title = QtWidgets.QLabel("Civilité:")
         self.cbox_civil_title = QtWidgets.QComboBox()
-        # self.cbox_civil_title.addItems(["", "M.", "Mme", "Monsieur", "Madame"])
+        self.cbox_civil_title.addItems(["", "M.", "Mme", "Monsieur", "Madame"])
         self.lbl_manager_last_name = QtWidgets.QLabel("Nom du dirigeant:")
         self.le_manager_last_name = QtWidgets.QLineEdit()
         self.lbl_manager_first_name = QtWidgets.QLabel("Prénom:")
@@ -53,12 +56,16 @@ class FormCompany(QtWidgets.QWidget):
         self.le_town = QtWidgets.QLineEdit()
         self.lbl_siret_nb = QtWidgets.QLabel("N° Siret:")
         self.le_siret_nb = QtWidgets.QLineEdit()
+        self.lbl_ape = QtWidgets.QLabel("Code APE:")
+        self.le_ape = QtWidgets.QLineEdit()
         self.lbl_taxe = QtWidgets.QLabel("Non soumis à TVA:")
         self.cb_taxe = QtWidgets.QCheckBox()
         self.cb_taxe.setChecked(False)
         self.btn_save = QtWidgets.QPushButton("Valider", clicked=self.valid_and_save)
         # self.btn_save = QtWidgets.QPushButton("Valider", clicked=partial(self.valid_and_save, datas))
-        self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=self.close)
+        cancel_button_action = self.valid_and_save if self.datas else self.close
+        self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=cancel_button_action)
+
         self.btn_doc = QtWidgets.QPushButton(text='Documentation',
                                              objectName='btn_doc',
                                              clicked=doc)
@@ -73,19 +80,22 @@ class FormCompany(QtWidgets.QWidget):
         self.le_zip.setValidator(QRegularExpressionValidator(RX_ZIP))
         self.le_town.setValidator(QRegularExpressionValidator(RX_NAME))
         self.le_siret_nb.setValidator(QRegularExpressionValidator(RX_SIRET))
+        self.le_ape.setValidator(QRegularExpressionValidator(RX_APE))
 
-    def modify_widgets(self, datas):
+    def modify_widgets(self):
         self.lbl_title.setAlignment(QtCore.Qt.AlignCenter)
-        self.le_company.setText(datas.get('company_name', ""))
-        self.le_manager_last_name.setText(datas.get('manager_last_name', ""))
-        self.le_manager_first_name.setText(datas.get('manager_first_name', ""))
-        self.le_email.setText(datas.get('email', ""))
-        self.le_phone.setText(datas.get('phone', ""))
-        self.le_address.setText(datas.get('address', ""))
-        self.le_zip.setText(datas.get('zip', ""))
-        self.le_town.setText(datas.get('town', ''))
-        self.le_siret_nb.setText(datas.get('siret_nb', ""))
-        self.cb_taxe.setChecked(bool(datas.get('taxe', "")))
+        self.le_company.setText(self.datas.get('company_name', ""))
+        self.cbox_civil_title.setCurrentText(self.datas.get('civil_title', ""))
+        self.le_manager_last_name.setText(self.datas.get('manager_last_name', ""))
+        self.le_manager_first_name.setText(self.datas.get('manager_first_name', ""))
+        self.le_email.setText(self.datas.get('email', ""))
+        self.le_phone.setText(self.datas.get('phone', ""))
+        self.le_address.setText(self.datas.get('address', ""))
+        self.le_zip.setText(self.datas.get('zip', ""))
+        self.le_town.setText(self.datas.get('town', ''))
+        self.le_siret_nb.setText(self.datas.get('siret_nb', ""))
+        self.le_ape.setText(self.datas.get('code_ape', ""))
+        self.cb_taxe.setChecked(bool(self.datas.get('taxe', "")))
 
     def create_layout(self):
         self.main_layout = QtWidgets.QGridLayout(self)
@@ -130,15 +140,18 @@ class FormCompany(QtWidgets.QWidget):
         self.main_layout.addWidget(self.lbl_siret_nb, row+11, column, row_span, column_span)
         self.main_layout.addWidget(self.le_siret_nb, row+11, column+1, row_span, column_span*4)
         # row 12
-        self.main_layout.addWidget(self.lbl_taxe, row+12, column, row_span, column_span)
-        self.main_layout.addWidget(self.cb_taxe, row+12, column+1, row_span, column_span*4)
+        self.main_layout.addWidget(self.lbl_ape, row+12, column, row_span, column_span)
+        self.main_layout.addWidget(self.le_ape, row+12, column+1, row_span, column_span*4)
         # row 13
-        self.main_layout.addWidget(self.hline_bottom, row+13, column, row_span, column_span*5)
+        self.main_layout.addWidget(self.lbl_taxe, row+13, column, row_span, column_span)
+        self.main_layout.addWidget(self.cb_taxe, row+13, column+1, row_span, column_span*4)
         # row 14
-        self.main_layout.addWidget(self.btn_save, row+14, column+3, row_span, column_span)
-        self.main_layout.addWidget(self.btn_cancel, row+14, column+4, row_span, column_span)
+        self.main_layout.addWidget(self.hline_bottom, row+14, column, row_span, column_span*5)
         # row 15
-        self.main_layout.addWidget(self.btn_doc, row+15, column+4, row_span, column_span)
+        self.main_layout.addWidget(self.btn_save, row+15, column+3, row_span, column_span)
+        self.main_layout.addWidget(self.btn_cancel, row+15, column+4, row_span, column_span)
+        # row 16
+        self.main_layout.addWidget(self.btn_doc, row+16, column+4, row_span, column_span)
 
     def valid_and_save(self):
         len_data = [(self.le_address.text(), 0, "L'adresse est obligatoire."),
@@ -159,13 +172,17 @@ class FormCompany(QtWidgets.QWidget):
             company_datas['zip'] = self.le_zip.text()
             company_datas['town'] = self.le_town.text().strip()
             company_datas['siret_nb'] = self.le_siret_nb.text()
+            company_datas['code_ape'] = self.le_ape.text()
             company_datas['taxe'] = self.cb_taxe.isChecked()
             fields = ' '.join([k + ' text,' for k in list(company_datas.keys())])[:-1]
-            # database.db_create('company', fields)
-            # database.db_insert('company', company_datas)
-            print(company_datas)
-            print(fields)
-            self.close()
+
+            if not self.datas:
+                database.db_create('company', fields)
+                database.db_insert('company', company_datas)
+                self.close()
+            else:
+                database.db_update('company', company_datas, self.datas.get('id'))
+                self.close()
 
     def event(self, event):
         """ déplace le focus vers le prochain qwidget avec la touche Enter"""

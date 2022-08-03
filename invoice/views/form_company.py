@@ -1,7 +1,7 @@
 
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QRegularExpressionValidator
-from invoice.models import database
+from invoice.models.utils import save_company_datas
 from invoice.views.utils import separator_hline, check_len_data, doc, check_email
 from invoice.views.constants import (RX_COMPANY_NAME,
                                      RX_NAME,
@@ -62,10 +62,7 @@ class FormCompany(QtWidgets.QWidget):
         self.cb_taxe = QtWidgets.QCheckBox()
         self.cb_taxe.setChecked(False)
         self.btn_save = QtWidgets.QPushButton("Valider", clicked=self.valid_and_save)
-        # self.btn_save = QtWidgets.QPushButton("Valider", clicked=partial(self.valid_and_save, datas))
-        cancel_button_action = self.valid_and_save if self.datas else self.close
-        self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=cancel_button_action)
-
+        self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=self.close)
         self.btn_doc = QtWidgets.QPushButton(text='Documentation',
                                              objectName='btn_doc',
                                              clicked=doc)
@@ -174,15 +171,9 @@ class FormCompany(QtWidgets.QWidget):
             company_datas['siret_nb'] = self.le_siret_nb.text()
             company_datas['code_ape'] = self.le_ape.text()
             company_datas['taxe'] = self.cb_taxe.isChecked()
-            fields = ' '.join([k + ' text,' for k in list(company_datas.keys())])[:-1]
-
-            if not self.datas:
-                database.db_create('company', fields)
-                database.db_insert('company', company_datas)
-                self.close()
-            else:
-                database.db_update('company', company_datas, self.datas.get('id'))
-                self.close()
+            msg = save_company_datas(self.datas, company_datas)
+            QtWidgets.QMessageBox.information(self, 'Information', msg)
+            self.close()
 
     def event(self, event):
         """ déplace le focus vers le prochain qwidget avec la touche Enter"""

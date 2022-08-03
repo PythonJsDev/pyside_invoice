@@ -85,7 +85,7 @@ def db_delete(table_name: str, id: str):
 
 
 def db_read_id_row(table_name: str, id: str) -> dict[str, str]:
-    """ retourne un dict champ: donnée pour la ligne dont l'id est spécifié """
+    """ retourne un dict {champ: donnée} pour la ligne dont l'id est spécifié """
     datas = db_select_by_id(table_name, id)
     fields = db_read_fields_name(table_name)
     field_data = {}

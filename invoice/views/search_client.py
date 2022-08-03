@@ -1,32 +1,28 @@
 from PySide6 import QtWidgets, QtCore
 from functools import partial
-# from PySide6.QtGui import QRegularExpressionValidator
 from invoice.views.utils import separator_hline, doc
-from invoice.views.form_client import FormClient 
+from invoice.views.form_client import FormClient
+
 from invoice.views.constants import FORM_WIN_HEIGHT, FORM_WIN_WIDTH
 from invoice.models.utils import (all_clients_last_name,
                                   all_clients_email,
                                   all_clients_phone,
-                                  all_companies,)
-from invoice.models.database import db_select_by_field
-from invoice.models import database
-import sys
+                                  all_companies,
+                                  datas_to_display_lw,
+                                  client_datas,
+                                  delete_client)
 
 
 class SearchClient(QtWidgets.QWidget):
-
     def __init__(self, title):
         super().__init__()
         self.title = title
         self.setWindowTitle(self.title)
         self.resize(FORM_WIN_WIDTH, FORM_WIN_HEIGHT)
         self.setup_ui()
-        # self.num_client = 0
 
     def setup_ui(self):
         self.create_widgets()
-        # self.validator_inputs()
-        # self.modify_widgets()
         self.create_layout()
         self.add_widgets_to_layouts()
 
@@ -57,9 +53,9 @@ class SearchClient(QtWidgets.QWidget):
         self.cbox_phone.addItems(all_clients_phone())
         self.cbox_phone.currentTextChanged.connect(partial(self.on_combobox_changed, "phone"))
 
-        # self.le_phone = QtWidgets.QLineEdit()
+        self.lbl_instruction = QtWidgets.QLabel('Cliquer sur les données du client pour le selectionner:')
+        self.lbl_instruction.setHidden(True)
         self.lw = QtWidgets.QListWidget()
-       
         self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=self.close)
         self.btn_doc = QtWidgets.QPushButton(text='Documentation',
                                              objectName='btn_doc',
@@ -67,7 +63,6 @@ class SearchClient(QtWidgets.QWidget):
 
     def create_layout(self):
         self.main_layout = QtWidgets.QGridLayout(self)
-        # self.h_layout = QtWidgets.QHBoxLayout(self)
 
     def add_widgets_to_layouts(self):
         row = 0
@@ -85,9 +80,6 @@ class SearchClient(QtWidgets.QWidget):
         self.main_layout.addWidget(self.lbl_client_last_name, row+3, column, row_span, column_span)
         self.main_layout.addWidget(self.cbox_client_last_name, row+3, column+1, row_span, column_span*4)
         # row 4
-        # self.main_layout.addWidget(self.lbl_client_first_name, row+3, column, row_span, column_span)
-        # self.main_layout.addWidget(self.le_client_first_name, row+3, column+1, row_span, column_span*4)
-        # row 4
         self.main_layout.addWidget(self.lbl_email, row+4, column, row_span, column_span)
         self.main_layout.addWidget(self.cbox_email, row+4, column+1, row_span, column_span*4)
         # row 5
@@ -96,48 +88,32 @@ class SearchClient(QtWidgets.QWidget):
         # row 6
         self.main_layout.addWidget(self.hline_bottom, row+6, column, row_span, column_span*5)
         # row 7
-        self.main_layout.addWidget(self.lw, row+7, column, row_span, column_span*5)
+        self.main_layout.addWidget(self.lbl_instruction, row+7, column, row_span, column_span*5)
         # row 8
-        self.main_layout.addWidget(self.btn_cancel, row+8, column+4, row_span, column_span)
+        self.main_layout.addWidget(self.lw, row+8, column, row_span, column_span*5)
         # row 9
-        self.main_layout.addWidget(self.btn_doc, row+9, column+4, row_span, column_span)
+        self.main_layout.addWidget(self.btn_cancel, row+9, column+4, row_span, column_span)
+        # row 10
+        self.main_layout.addWidget(self.btn_doc, row+10, column+4, row_span, column_span)
 
     def on_combobox_changed(self, cbox_name, text_selected):
-        clients_fields = ["N° client: ", "Entreprise: ", "Titre: ",
-                          "Nom: ", "Prénom: ", "Email: ", "Téléphone: ",
-                          "Voie: ", "Code postal: ", "Commune: "]
-        data_to_display = []
+        datas_lw = datas_to_display_lw(cbox_name, text_selected)
         self.lw.clear()
-        data_list = db_select_by_field('client', {cbox_name: text_selected})
-        for data in data_list:
-            data_client = ""
-            for i, d in enumerate(data):
-                # if i != 0:
-                data_client += clients_fields[i] + str(d) + '\n'
-            data_to_display.append(data_client)
-        self.lw.addItems(data_to_display)
-        self.lw.currentItemChanged.connect(self.index_changed)
+        self.lbl_instruction.setHidden(False)
+        self.lw.addItems(datas_lw)
+        self.lw.currentItemChanged.connect(self.client_selected)
 
-    def index_changed(self, i):     # Not an index, i is a QListItem
+    def client_selected(self, i):
         rep = i.text()
-        print(rep)
-        print('-'*50)
         index = rep.find(": ")+2
-        
-        # SearchClient.num_client = rep[index]
-        datas = database.db_read_id_row('client', rep[index])
-        print('datas:', datas)
+        datas = client_datas(rep[index])
+        if self.title == 'Supprimer un client':
+            msg = delete_client(self, datas)
+            QtWidgets.QMessageBox.information(self, 'Information', msg)
+        if self.title == 'Modifier un client':
+            self.w = FormClient(datas)
+            self.w.show()
+        # else:
+        #     # SearchClient.datas_client = datas
+        #     print('seahcg', datas)
         self.close()
-        # database.db_delete('client', rep[index])
-        self.w = FormClient(datas)
-        self.w.show()
-    
-    # def res(self):
-    #     return 'coucou'
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    win = SearchClient()
-    win.show()
-    sys.exit(app.exec())

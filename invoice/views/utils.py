@@ -29,3 +29,15 @@ def check_email(self, email):
         return True
     QtWidgets.QMessageBox.warning(self, 'Erreur', 'email invalide')
     return False
+
+
+def dlg_ask_question(self, title: str, question: str) -> bool:
+    dlg = QtWidgets.QMessageBox(self)
+    dlg.setWindowTitle(title)
+    dlg.setText(question)
+    dlg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+    dlg.setIcon(QtWidgets.QMessageBox.Question)
+    button = dlg.exec()
+    if button == QtWidgets.QMessageBox.Yes:
+        return True
+    return False

@@ -1,5 +1,6 @@
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QRegularExpressionValidator
+from invoice.models.utils import save_client_datas
 from invoice.views.utils import separator_hline, check_len_data, doc, check_email
 from invoice.views.constants import (RX_NAME,
                                      RX_EMAIL,
@@ -8,8 +9,6 @@ from invoice.views.constants import (RX_NAME,
                                      RX_PHONE,
                                      FORM_WIN_HEIGHT,
                                      FORM_WIN_WIDTH)
-
-from invoice.models import utils, database
 
 
 class FormClient(QtWidgets.QWidget):
@@ -53,9 +52,7 @@ class FormClient(QtWidgets.QWidget):
         self.lbl_town = QtWidgets.QLabel("Commune:")
         self.le_town = QtWidgets.QLineEdit()
         self.btn_save = QtWidgets.QPushButton("Valider", clicked=self.valid_and_save)
-        # self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=self.close)
-        cancel_button_action = self.valid_and_save if self.datas else self.close
-        self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=cancel_button_action)
+        self.btn_cancel = QtWidgets.QPushButton(text='Annuler', clicked=self.close)
 
         self.btn_doc = QtWidgets.QPushButton(text='Documentation',
                                              objectName='btn_doc',
@@ -65,7 +62,6 @@ class FormClient(QtWidgets.QWidget):
         self.le_client_last_name.setValidator(QRegularExpressionValidator(RX_NAME))
         self.le_client_first_name.setValidator(QRegularExpressionValidator(RX_NAME))
         self.le_email.setValidator(QRegularExpressionValidator(RX_EMAIL))
-        # self.le_email.textEdited.connect(self.text_edited)
 
         self.le_phone.setValidator(QRegularExpressionValidator(RX_PHONE))
         self.le_place.setValidator(QRegularExpressionValidator(RX_ADDRESS))
@@ -86,7 +82,6 @@ class FormClient(QtWidgets.QWidget):
 
     def create_layout(self):
         self.main_layout = QtWidgets.QGridLayout(self)
-        # self.h_layout = QtWidgets.QHBoxLayout(self)
 
     def add_widgets_to_layouts(self):
         row = 0
@@ -152,19 +147,9 @@ class FormClient(QtWidgets.QWidget):
             client_datas['place'] = self.le_place.text().strip()
             client_datas['zip'] = self.le_zip.text()
             client_datas['town'] = self.le_town.text().strip()
-            fields = ' '.join([k + ' text,' for k in list(client_datas.keys())])[:-1]
-            if not self.datas:
-                if database.db_is_table_exist('client'):
-                    if utils.client_already_exist(client_datas):
-                        QtWidgets.QMessageBox.warning(self, 'Erreur', "Ce client est déjà enregistré")
-                        self.close()
-                else:
-                    database.db_create('client', fields)
-                    database.db_insert('client', client_datas)
-                    self.close()
-            else:
-                database.db_update('client', client_datas, self.datas.get('id'))
-                self.close()
+            msg = save_client_datas(self.datas, client_datas)
+            QtWidgets.QMessageBox.information(self, 'Information', msg)
+            self.close()
 
     def event(self, event):
         """ déplace le focus vers le prochain qwidget avec la touche Enter"""
@@ -172,6 +157,3 @@ class FormClient(QtWidgets.QWidget):
             if event.key() == QtCore.Qt.Key_Return:
                 self.focusNextPrevChild(True)
         return super().event(event)
-
-    # def text_edited(self, s):
-    #     print(s)

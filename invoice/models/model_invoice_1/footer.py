@@ -3,9 +3,8 @@ from reportlab.lib import colors
 
 
 def footer_table(width, height, datas):
-    datas_to_display = [datas.get('phone'), datas.get('email'), datas.get('siret')]
+    datas_to_display = [datas.get('siret_nb'), datas.get('code_ape')]
     text = ' - '.join(datas_to_display)
-
     color = colors.HexColor('#003363')
 
     res = Table([[text]], width, height)

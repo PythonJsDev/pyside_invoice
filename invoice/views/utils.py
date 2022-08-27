@@ -41,3 +41,4 @@ def dlg_ask_question(self, title: str, question: str) -> bool:
     if button == QtWidgets.QMessageBox.Yes:
         return True
     return False
+

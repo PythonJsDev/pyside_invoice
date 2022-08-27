@@ -1,13 +1,19 @@
 from reportlab.platypus import Table
 # from reportlab.lib import colors
 # from reportlab.lib.styles import ParagraphStyle
+from invoice.models.utils import invoice_datas
+from ..constants import (CURRENCY,
+                         TVA_MSG,
+                         INVOICE_TITLE,
+                         INVOICE_HEADER,
+                         PHRASE_1,
+                         PHRASE_2)
+# import locale
+# from datetime import datetime
 
-import locale
-from datetime import datetime
 
-
-def body_table(width, height):
-    top_padding_tab = 10
+def body_table(width, height, id_to_update):
+    # top_padding_tab = 10
     width_part = {
         'left_margin': width * 10/100,
         'center_column': width * 80/100,
@@ -16,77 +22,63 @@ def body_table(width, height):
 
     height_part = {
         "title": height * 10/100,
+        "sub_title": height * 3/100,
         "date": height * 5/100,
         "invoice_num": height * 5/100,
         "tab": height * 65/100,
-        "paragrah_1": height * 10/100,
+        "paragrah_1": height * 7/100,
         "paragrah_2": height * 5/100,
     }
-    # left_padding = 20
-    # tables_width = width_list[1] - left_padding
+    
     res = Table([
-        ["", _title(), ""],
-        ["", _date(), ""],
-        ["", _bill_number(), ""],
-        ["", _tab_table(width_part.get('center_column'), height_part.get('tab')), ""],
+        ["", INVOICE_TITLE, ""],
         ["", "", ""],
-        ["", "", ""],
+        ["", _date(id_to_update), ""],
+        ["", _bill_number(id_to_update), ""],
+        ["", _tab_table(width_part.get('center_column'), height_part.get('tab'), id_to_update), ""],
+        ["", PHRASE_1 + "\n" + PHRASE_2, ""],
+        ["", TVA_MSG, ""],
         ],
         [width for width in width_part.values()],
         [height for height in height_part.values()],
         )
-    #             )
-    # # res = Table([
-    # #     ['', 'Offer', ''],
-    # #     ['', _gen_contacts_table(tables_width, height_list[1]), ''],
-    # #     ['', _gen_price_list_table(tables_width, height_list[2]), ''],
-    # #     ['', _gen_description_paragraph(), ''],
-    # #     ['', _gen_about_table(width_list[1], height_list[4]), '']],
-    # #     width_list,
-    # #     height_list)
-    # color = colors.HexColor('#003363')
 
     res.setStyle([
-        ('GRID', (0, 0), (-1, -1), 1, 'blue'),
         # titre facture
         ('ALIGN', (1, 0), (-1, 0), 'CENTER'),
         ('VALIGN', (1, 0), (-1, 0), 'MIDDLE'),
-        # ('LINEBELOW', (1, 0), (1, 1), 1, color),
-        # ('LINEBELOW', (1, 3), (1, 3), 1, color),
+        ('FONTSIZE', (1, 0), (-1, 0), 12),
+        ('FONTNAME', (1, 0), (-1, 0), 'Helvetica-Bold'),
+
+        ('ALIGN', (1, 1), (-1, 1), 'LEFT'),
+        ('VALIGN', (1, 1), (-1, 1), 'MIDDLE'),
+
+        ('ALIGN', (1, -1), (1, -1), 'CENTER'),
+        ('VALIGN', (1, -1), (1, -1), 'MIDDLE'),
+        ('FONTSIZE', (1, -1), (1, -1), 8),
+
+        ('FONTSIZE', (1, -2), (1, -2), 7),
+        ('ALIGN', (1, -2), (1, -2), 'CENTER'),
+        ('VALIGN', (1, -2), (1, -2), 'MIDDLE'),
+
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        # ('FONTSIZE', (1, 0), (1, 0), 30),
+        ('LEFTPADDING', (1, 1), (1, 3), 10),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
         ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('VALIGN', (0, 3), (-1, 3), 'TOP'),
-        # tab_table
-        ('TOPPADDING', (1, 3), (-1, 3), top_padding_tab),
-        # ('BOTTOMPADDING', (1, 1), (1, 2), 0),
-        # ('BOTTOMPADDING', (1, 3), (1, 3), 40),
-
-        # ('BOTTOMPADDING', (1, 4), (1, 4), 0),
-        # ('LEFTPADDING', (1, 4), (1, 4), 0),
         ])
     return res
 
 
-def _title():
-    return "TITRE FACTURE"
+def _date(id_to_update):
+    return "Le: " + invoice_datas(id_to_update).get('date')
 
 
-def _date():
-    locale.setlocale(locale.LC_ALL, 'fr_FR')
-    now = datetime.now().strftime('%d %B %Y')
-    year = datetime.now().strftime('%Y')
-    month = datetime.now().strftime('%m')
-    week = datetime.now().strftime('%U')
-    return "Le: " + now + ' ' + year + ' ' + month + ' ' + week
+def _bill_number(id_to_update):
+    return 'Facture N°: ' + invoice_datas(id_to_update).get('bill_number')
 
 
-def _bill_number():
-    return 'num'
-
-
-def _tab_table(width, height):
+def _tab_table(width, height, id_to_update):
+    items = invoice_datas(id_to_update).get('items').split(',')
     width_part = {
         'left_margin': width * 10/100,
         'designation': width * 40/100,
@@ -95,30 +87,41 @@ def _tab_table(width, height):
         'right_margin': width * 10/100,
     }
     height_part = {
+        'margin_top': height * 15/100,
+        'phrase': height * 5/100,
         'title': height * 5/100,
-        'line_1': height * 5/100,
+        'line_1': height * 10/100,
         'line_2': height * 5/100,
         'line_3': height * 5/100,
+        'margin_bottom': height * 55/100,
     }
     matrix = [
-        ["", "a", "b", "c", ""],
-        ["", "d", "e", "f", ""],
-        ["", "g", "h", "i", ""],
-        ["", "k", "l", "m", ""]]
-
+        [],
+        ["", INVOICE_HEADER, "", "", ""],
+        ["", "Désignation", "Quantité", "Tarif", ""],
+        ["", items[0], items[1], items[2] + " " + CURRENCY, ""],
+        [],
+        ["", "", "Total:", format(float(items[1])*float(items[2]), '.2f') + " " + CURRENCY, ""],
+        []]
     result = Table(matrix,
                    [width for width in width_part.values()],
                    [height for height in height_part.values()])
 
     result.setStyle([
-        ('GRID', (0, 0), (-1, -1), 1, 'red'),
-        # ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('GRID', (1, 2), (-2, 3), 1, 'black'),
         # title table
-        ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-        ('VALIGN', (0, 0), (-1, 0), 'MIDDLE'),
-        # ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-        # ('LEFTPADDING', (0, 0), (-1, -1), 50),
-        # ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ('ALIGN', (0, 2), (-1, 2), 'CENTER'),
+        ('VALIGN', (0, 2), (-1, 2), 'MIDDLE'),
+        ('FONTNAME', (0, 2), (-1, 2), 'Helvetica-Bold'),
+
+        ('ALIGN', (-3, 3), (-2, 3), 'CENTER'),
+        ('VALIGN', (1, 3), (-2, 3), 'MIDDLE'),
+
+        ('ALIGN', (-2, 5), (-2, 5), 'CENTER'),
+        ('ALIGN', (-3, 5), (-3, 5), 'RIGHT'),
+
+        ('FONTSIZE', (-2, 5), (-2, 5), 12),
+        ('FONTNAME', (-3, 5), (-2, 5), 'Helvetica-Bold')
         ])
 
     return result

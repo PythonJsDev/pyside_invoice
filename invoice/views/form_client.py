@@ -147,6 +147,7 @@ class FormClient(QtWidgets.QWidget):
             client_datas['place'] = self.le_place.text().strip()
             client_datas['zip'] = self.le_zip.text()
             client_datas['town'] = self.le_town.text().strip()
+
             msg = save_client_datas(self.datas, client_datas)
             QtWidgets.QMessageBox.information(self, 'Information', msg)
             self.close()

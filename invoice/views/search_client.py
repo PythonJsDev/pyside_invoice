@@ -2,6 +2,7 @@ from PySide6 import QtWidgets, QtCore
 from functools import partial
 from invoice.views.utils import separator_hline, doc
 from invoice.views.form_client import FormClient
+from invoice.views.form_invoice import FormInvoice
 
 from invoice.views.constants import FORM_WIN_HEIGHT, FORM_WIN_WIDTH
 from invoice.models.utils import (all_clients_last_name,
@@ -113,7 +114,7 @@ class SearchClient(QtWidgets.QWidget):
         if self.title == 'Modifier un client':
             self.w = FormClient(datas)
             self.w.show()
-        # else:
-        #     # SearchClient.datas_client = datas
-        #     print('seahcg', datas)
+        if self.title == 'Facture':
+            self.w = FormInvoice(datas)
+            self.w.show()
         self.close()

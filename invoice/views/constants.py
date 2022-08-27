@@ -1,7 +1,7 @@
-FORM_WIN_WIDTH = 600
+FORM_WIN_WIDTH = 800
 FORM_WIN_HEIGHT = 450
 
-MAIN_WIN_HEIGHT, MAIN_WIN_WIDTH = 500, 650
+MAIN_WIN_HEIGHT, MAIN_WIN_WIDTH = 500, 800
 
 RX_COMPANY_NAME = r"^[0-9A-Za-z-\éèêëàâîïùûüôÿçÉÈÊËÀÂÏÎÙÛÜÔŸÇ' ]{2,}$"
 RX_NAME = r"^[A-Za-z-\éèêëàâîïùûüôÿçÉÈÊËÀÂÏÎÙÛÜÔŸÇ ]{2,}$"

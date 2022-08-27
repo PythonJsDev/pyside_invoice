@@ -1,11 +1,11 @@
 from PySide6 import QtWidgets, QtCore
 from PySide6.QtGui import QAction, Qt, QKeySequence
-# from pySide6 import QApplication, QLabel, QMainWindow
 import sys
 
 from invoice.views.form_client import FormClient
 from invoice.views.form_company import FormCompany
-from invoice.views.form_invoice import FormInvoice
+from invoice.views.form_invoice_client import FormInvoiceClient
+from invoice.views.form_invoice_search import FormInvoiceNumber
 from invoice.models import database
 from invoice.views.search_client import SearchClient
 from invoice.views.constants import MAIN_WIN_HEIGHT, MAIN_WIN_WIDTH
@@ -20,8 +20,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.show()
 
         label = QtWidgets.QLabel("Facture & Devis")
+
         label.setAlignment(Qt.AlignCenter)
         self.setCentralWidget(label)
+
         btn_company = QAction("&Enregistrer", self)
         btn_company.setStatusTip("Formulaire d'enregistrement de l'entreprise")
         btn_company.triggered.connect(self.new_company)
@@ -51,9 +53,9 @@ class MainWindow(QtWidgets.QMainWindow):
         btn_invoice.triggered.connect(self.new_invoice)
         btn_invoice.setShortcut(QKeySequence("Ctrl+R"))
 
-        btn_search_invoice = QAction("&Chercher", self)
-        btn_search_invoice.setStatusTip("Chercher une facture")
-        btn_search_invoice.triggered.connect(self.search_invoice)
+        btn_search_invoice = QAction("&Modifier", self)
+        btn_search_invoice.setStatusTip("Modifier une facture")
+        btn_search_invoice.triggered.connect(self.modif_invoice)
         btn_search_invoice.setShortcut(QKeySequence("Ctrl+F"))
 
         button_action2 = QAction("&Your &button2", self)
@@ -124,14 +126,16 @@ class MainWindow(QtWidgets.QMainWindow):
             self.w.show()
 
     def new_invoice(self):
-        print('nouvelle facture')
         self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowStaysOnTopHint)
         self.show()
-        self.w = FormInvoice({})
+        self.w = FormInvoiceClient({})
         self.w.show()
 
-    def search_invoice(self):
-        print('chercher une facture')
+    def modif_invoice(self):
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowStaysOnTopHint)
+        self.show()
+        self.w = FormInvoiceNumber()
+        self.w.show()
 
 
 if __name__ == "__main__":
